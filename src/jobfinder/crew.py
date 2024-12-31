@@ -35,17 +35,17 @@ class Jobfinder():
 	# task dependencies, and task callbacks, check out the documentation:
 	# https://docs.crewai.com/concepts/tasks#overview-of-a-task
 	@task
-	def research_task(self) -> Task:
+	def collect_jobs(self) -> Task:
 		return Task(
-			config=self.tasks_config['research_task'],
-		)
+            config=self.tasks_config['collect_jobs'],
+        )
 
 	@task
-	def reporting_task(self) -> Task:
+	def generate_report(self) -> Task:
 		return Task(
-			config=self.tasks_config['reporting_task'],
-			output_file='report.md'
-		)
+            config=self.tasks_config['generate_report'],
+            output_file='report.md'
+        )
 
 	@crew
 	def crew(self) -> Crew:

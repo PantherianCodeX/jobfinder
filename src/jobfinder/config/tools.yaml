@@ -1,0 +1,5 @@
+tools:
+  - id: job_scraper
+    name: Job Scraper
+    description: Scrapes freelance platforms for job postings.
+    class: jobfinder.tools.custom_tool.JobScraper

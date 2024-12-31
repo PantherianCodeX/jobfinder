@@ -9,7 +9,7 @@ warnings.filterwarnings("ignore", category=SyntaxWarning, module="pysbd")
 # This main file is intended to be a way for you to run your
 # crew locally, so refrain from adding unnecessary logic into this file.
 # Replace with inputs you want to test with, it will automatically
-# interpolate any tasks and agents information
+# interpolate any tasks and agents information.
 
 def run():
     """
@@ -55,4 +55,48 @@ def test():
         Jobfinder().crew().test(n_iterations=int(sys.argv[1]), openai_model_name=sys.argv[2], inputs=inputs)
 
     except Exception as e:
-        raise Exception(f"An error occurred while replaying the crew: {e}")
+        raise Exception(f"An error occurred while testing the crew: {e}")
+
+def run_task():
+    """
+    Run a specific task using its task ID.
+    """
+    try:
+        task_id = sys.argv[1]  # Get the task ID from the command-line arguments
+        print(f"Running task: {task_id}")
+
+        # Provide dynamic inputs for the task
+        inputs = {
+            # task_id: {
+            #     "additional_input": "value"  # Replace with task-specific inputs
+            # }
+        }
+
+        # Run the task using kickoff (as individual task execution is not supported)
+        crew = Jobfinder().crew()
+        result = crew.kickoff(inputs=inputs)
+
+        # Display the results
+        print(f"Result for task '{task_id}':")
+        print(result)
+
+    except Exception as e:
+        raise Exception(f"An error occurred while running the task: {e}")
+
+
+
+if __name__ == "__main__":
+    command = sys.argv[1]  # First argument is the command name
+
+    if command == "run":
+        run()
+    elif command == "train":
+        train()
+    elif command == "replay":
+        replay()
+    elif command == "test":
+        test()
+    elif command == "run_task":
+        run_task()
+    else:
+        print(f"Unknown command: {command}")
