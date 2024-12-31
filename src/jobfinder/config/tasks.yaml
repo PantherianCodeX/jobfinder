@@ -1,13 +1,17 @@
-collect_jobs:
+search_jobs:
     description: >
-      Collect freelance job postings from web platforms.
+      Search and collect job postings from the primary job platform,
+      focusing on {topic} positions. Gather essential information
+      including job title, description, requirements, and application details.
     expected_output: >
-      A list of collected job postings.
-    agent: researcher
+      A list of relevant job postings with complete information.
+    agent: job_searcher
 
-generate_report:
+process_data:
     description: >
-      Generate a summary report of job opportunities.
+      Clean and standardize the collected job posting data. Ensure
+      consistent formatting, remove duplicates, and validate essential
+      fields for {topic} positions.
     expected_output: >
-      A markdown report summarizing job opportunities.
-    agent: reporting_analyst
+      A structured dataset of processed job postings ready for analysis.
+    agent: data_processor

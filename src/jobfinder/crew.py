@@ -1,62 +1,185 @@
+"""JobFinder crew implementation for finding and processing job postings.
+
+This module implements the core JobFinder crew using the CrewAI framework.
+It defines the essential agents and tasks needed for the MVP job finding system.
+"""
+
+from typing import List, Dict, Any
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 
-# If you want to run a snippet of code before or after the crew starts, 
-# you can use the @before_kickoff and @after_kickoff decorators
-# https://docs.crewai.com/concepts/crews#example-crew-class-with-decorators
+
+class JobFinderError(Exception):
+    """Base exception class for JobFinder errors."""
+    pass
+
+
+class AgentConfigError(JobFinderError):
+    """Raised when there is an error in agent configuration."""
+    pass
+
+
+class TaskConfigError(JobFinderError):
+    """Raised when there is an error in task configuration."""
+    pass
+
 
 @CrewBase
 class Jobfinder():
-	"""Jobfinder crew"""
+    """Jobfinder crew for finding and processing job postings.
+    
+    This class implements the core MVP functionality for the job finding system,
+    including agent creation, task definition, and crew assembly.
+    """
 
-	# Learn more about YAML configuration files here:
-	# Agents: https://docs.crewai.com/concepts/agents#yaml-configuration-recommended
-	# Tasks: https://docs.crewai.com/concepts/tasks#yaml-configuration-recommended
-	agents_config = 'config/agents.yaml'
-	tasks_config = 'config/tasks.yaml'
+    agents_config = 'config/agents.yaml'
+    tasks_config = 'config/tasks.yaml'
 
-	# If you would like to add tools to your agents, you can learn more about it here:
-	# https://docs.crewai.com/concepts/agents#agent-tools
-	@agent
-	def researcher(self) -> Agent:
-		return Agent(
-			config=self.agents_config['researcher'],
-			verbose=True
-		)
+    def _validate_agent_config(self, config: Dict[str, Any]) -> None:
+        """Validate agent configuration has required fields.
+        
+        Args:
+            config: Agent configuration dictionary
+            
+        Raises:
+            AgentConfigError: If required fields are missing
+        """
+        required_fields = ['role', 'goal', 'backstory']
+        missing = [field for field in required_fields if not config.get(field)]
+        if missing:
+            raise AgentConfigError(f"Missing or empty required fields: {missing}")
 
-	@agent
-	def reporting_analyst(self) -> Agent:
-		return Agent(
-			config=self.agents_config['reporting_analyst'],
-			verbose=True
-		)
+    def _validate_task_config(self, config: Dict[str, Any]) -> None:
+        """Validate task configuration has required fields.
+        
+        Args:
+            config: Task configuration dictionary
+            
+        Raises:
+            TaskConfigError: If required fields are missing
+        """
+        required_fields = ['description', 'expected_output', 'agent']
+        missing = [field for field in required_fields if not config.get(field)]
+        if missing:
+            raise TaskConfigError(f"Missing or empty required fields: {missing}")
 
-	# To learn more about structured task outputs, 
-	# task dependencies, and task callbacks, check out the documentation:
-	# https://docs.crewai.com/concepts/tasks#overview-of-a-task
-	@task
-	def collect_jobs(self) -> Task:
-		return Task(
-            config=self.tasks_config['collect_jobs'],
-        )
+    @agent
+    def job_searcher(self) -> Agent:
+        """Create and configure the job search specialist agent.
+        
+        Returns:
+            Agent: Configured job search agent
+            
+        Raises:
+            AgentConfigError: If agent configuration is invalid
+        """
+        try:
+            config = self.agents_config['job_searcher']
+            self._validate_agent_config(config)
+            return Agent(
+                config=config,
+                verbose=True
+            )
+        except KeyError as e:
+            raise AgentConfigError(f"Missing job_searcher configuration: {e}")
+        except AgentConfigError:
+            raise
+        except Exception as e:
+            raise AgentConfigError(f"Error creating job_searcher agent: {e}")
 
-	@task
-	def generate_report(self) -> Task:
-		return Task(
-            config=self.tasks_config['generate_report'],
-            output_file='report.md'
-        )
+    @agent
+    def data_processor(self) -> Agent:
+        """Create and configure the data processing specialist agent.
+        
+        Returns:
+            Agent: Configured data processing agent
+            
+        Raises:
+            AgentConfigError: If agent configuration is invalid
+        """
+        try:
+            config = self.agents_config['data_processor']
+            self._validate_agent_config(config)
+            return Agent(
+                config=config,
+                verbose=True
+            )
+        except KeyError as e:
+            raise AgentConfigError(f"Missing data_processor configuration: {e}")
+        except AgentConfigError:
+            raise
+        except Exception as e:
+            raise AgentConfigError(f"Error creating data_processor agent: {e}")
 
-	@crew
-	def crew(self) -> Crew:
-		"""Creates the Jobfinder crew"""
-		# To learn how to add knowledge sources to your crew, check out the documentation:
-		# https://docs.crewai.com/concepts/knowledge#what-is-knowledge
+    @task
+    def search_jobs(self) -> Task:
+        """Create the job search task.
+        
+        Returns:
+            Task: Configured job search task
+            
+        Raises:
+            TaskConfigError: If task configuration is invalid
+        """
+        try:
+            config = self.tasks_config['search_jobs']
+            self._validate_task_config(config)
+            return Task(
+                config=config
+            )
+        except KeyError as e:
+            raise TaskConfigError(f"Missing search_jobs task configuration: {e}")
+        except TaskConfigError:
+            raise
+        except Exception as e:
+            raise TaskConfigError(f"Error creating search_jobs task: {e}")
 
-		return Crew(
-			agents=self.agents, # Automatically created by the @agent decorator
-			tasks=self.tasks, # Automatically created by the @task decorator
-			process=Process.sequential,
-			verbose=True,
-			# process=Process.hierarchical, # In case you wanna use that instead https://docs.crewai.com/how-to/Hierarchical/
-		)
+    @task
+    def process_data(self) -> Task:
+        """Create the data processing task.
+        
+        Returns:
+            Task: Configured data processing task
+            
+        Raises:
+            TaskConfigError: If task configuration is invalid
+        """
+        try:
+            config = self.tasks_config['process_data']
+            self._validate_task_config(config)
+            return Task(
+                config=config
+            )
+        except KeyError as e:
+            raise TaskConfigError(f"Missing process_data task configuration: {e}")
+        except TaskConfigError:
+            raise
+        except Exception as e:
+            raise TaskConfigError(f"Error creating process_data task: {e}")
+
+    @crew
+    def crew(self) -> Crew:
+        """Initialize and return the job finder crew.
+        
+        Returns:
+            Crew: Configured job finder crew with all agents and tasks
+            
+        Raises:
+            JobFinderError: If crew creation fails
+        """
+        try:
+            return Crew(
+                agents=[
+                    self.job_searcher(),
+                    self.data_processor()
+                ],
+                tasks=[
+                    self.search_jobs(),
+                    self.process_data()
+                ],
+                verbose=True
+            )
+        except (AgentConfigError, TaskConfigError) as e:
+            raise JobFinderError(f"Error creating crew: {e}")
+        except Exception as e:
+            raise JobFinderError(f"Unexpected error creating crew: {e}")

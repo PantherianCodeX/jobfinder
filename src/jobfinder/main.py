@@ -82,21 +82,3 @@ def run_task():
 
     except Exception as e:
         raise Exception(f"An error occurred while running the task: {e}")
-
-
-
-if __name__ == "__main__":
-    command = sys.argv[1]  # First argument is the command name
-
-    if command == "run":
-        run()
-    elif command == "train":
-        train()
-    elif command == "replay":
-        replay()
-    elif command == "test":
-        test()
-    elif command == "run_task":
-        run_task()
-    else:
-        print(f"Unknown command: {command}")
